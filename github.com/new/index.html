@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tiered Agent</title>
+<style>
+  body{font-family:system-ui,sans-serif;max-width:640px;margin:0 auto;padding:16px;background:#0d1117;color:#e6edf3}
+  h1{font-size:20px}
+  #log{border:1px solid #30363d;border-radius:8px;padding:12px;height:360px;overflow:auto;background:#161b22}
+  .me{color:#58a6ff;margin:6px 0}
+  .bot{color:#7ee787;margin:6px 0}
+  #row{display:flex;gap:8px;margin-top:10px}
+  input{flex:1;padding:10px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#e6edf3}
+  button{padding:10px 16px;border-radius:8px;border:0;background:#238636;color:#fff;cursor:pointer}
+</style>
+</head>
+<body>
+<h1>Tiered - my agent</h1>
+<div id="log"></div>
+<div id="row">
+  <input id="box" placeholder="type here... (try: note buy cards, notes, time, 12*7)" autofocus>
+  <button onclick="send()">Send</button>
+</div>
+<script>
+const box=document.getElementById("box");
+function add(who,txt){var d=document.createElement("div");d.className=who;d.textContent=(who==="me"?"you: ":"agent: ")+txt;var L=document.getElementById("log");L.appendChild(d);L.scrollTop=1e9;}
+function notes(){return JSON.parse(localStorage.getItem("tiered_notes")||"[]");}
+function saveNotes(n){localStorage.setItem("tiered_notes",JSON.stringify(n));}
+function reply(t){
+  t=t.trim();var low=t.toLowerCase();
+  if(low.indexOf("note ")===0){var n=notes();n.push(t.slice(5));saveNotes(n);return "saved. you have "+n.length+" note(s).";}
+  if(low==="notes"){var n=notes();return n.length?n.map(function(x,i){return (i+1)+". "+x;}).join("\n"):"no notes yet. type: note <something>";}
+  if(low==="clear notes"){saveNotes([]);return "notes cleared.";}
+  if(low==="time"||low==="date"){return new Date().toString();}
+  if(/^[\d+\-*/.() ]+$/.test(t)){try{return "that equals "+Function("return("+t+")")();}catch(e){return "that math did not work.";}}
+  if(low.indexOf("hello")>=0||low.indexOf("hey")>=0){return "hey. i can take notes, do math, tell time. what do you need?";}
+  return "i hear you. try: note <text>, notes, time, or math like 12*7.";
+}
+function send(){var t=box.value;if(!t)return;add("me",t);add("bot",reply(t));box.value="";}
+box.addEventListener("keydown",function(e){if(e.key==="Enter")send();});
+add("bot","up and running. i save your notes right on this device. try: note buy new cards");
+</script>
+</body>
+</html>
